@@ -43,6 +43,6 @@ $(COBJS) : obj/%.o : %.c
 	$(CC) -Wall -nostdlib -c -O2  $(INCLUDE) -o $@ $<
 	
 clean:
-	rm -rf $(TARGET) $(COBJS) $(SOBJS) ./obj/*
+	rm -rf $(TARGET) $(COBJS) $(SOBJS) 
 
 	
