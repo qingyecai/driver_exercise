@@ -2,7 +2,7 @@
 
 - [X] 开发一个HelloWorld应用，编译运行
 
-- [ ] 开发一个串口demo应用，或找一个开源的编译，能读写USB转TTL串口
+- [X] 开发一个串口demo应用，或找一个开源的编译，能读写USB转TTL串口
 
 - [ ] 开发一个HelloWorld驱动模块，加载后打印HelloWorld
 

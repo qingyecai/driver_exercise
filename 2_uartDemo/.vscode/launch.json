@@ -9,12 +9,12 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/${workspaceRootFolderName}",
-            "args": ["/dev/ttyusb0","115200"],
-            "stopAtEntry": true,
+            "args": ["/dev/ttyUSB0","115200"],
+            "stopAtEntry": false,
             //"cwd": "${workspaceRoot}",
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false,
             "MIMode": "gdb",
             "windows": {
                 "miDebuggerPath": "gdb.exe"

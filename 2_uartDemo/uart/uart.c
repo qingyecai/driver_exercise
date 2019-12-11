@@ -16,7 +16,7 @@ int uart_open(struct uart *uart)
 
 	uart->uart_fd = open(uart->uart_path, oflag);
 	if (uart->uart_fd < 0)
-		return 0;
+		return -1;
 
 	tcgetattr(uart->uart_fd, &old_tio);
 	memset(&new_tio, 0, sizeof(new_tio));
@@ -40,7 +40,7 @@ int uart_open(struct uart *uart)
 			cflag |= B115200;	break;
 		default:
 			close(uart->uart_fd);
-			return 0;
+			return -1;
 	}
 
 	if (uart->parity_check > 0)
@@ -67,7 +67,7 @@ int uart_open(struct uart *uart)
 	tcflush(uart->uart_fd, TCIFLUSH);
 	tcsetattr(uart->uart_fd, TCSANOW, &new_tio);
 
-	return 1;
+	return 0;
 }
 
 int uart_close(struct uart *uart)
@@ -77,7 +77,7 @@ int uart_close(struct uart *uart)
 		close(uart->uart_fd);
 		uart->uart_fd = 0;
 	}
-	return 1;
+	return 0;
 }
 
 int uart_recv(struct uart *uart, char *data, unsigned int data_len)
@@ -85,8 +85,8 @@ int uart_recv(struct uart *uart, char *data, unsigned int data_len)
 	unsigned int read_len = 0;
 	unsigned int bit_per_char = 0, us_per_char = 0;
 
-	if (uart->uart_fd == 0)
-		return 0;
+	if (uart->uart_fd < 0)
+		return -1;
 
 	if (uart->blocking_mode == 1)	//blocking mode
 	{
@@ -114,21 +114,26 @@ int uart_recv(struct uart *uart, char *data, unsigned int data_len)
 		}
 	}
 
-	if (read_len <= 0)
-		return 0;
-
 	return read_len;
 }
 
 int uart_send(struct uart *uart, char *data, unsigned int data_len)
 {
 	int send_len = 0;
-	if (uart->uart_fd == 0)
-		return 0;
+	if (uart->uart_fd < 0)
+		return -1;
 
 	send_len = write(uart->uart_fd, data, data_len);
-	if (send_len != data_len)
-		return send_len;
+	if (send_len == data_len)
+    {
+        printf("total_send is %d\n",send_len); 
+        return send_len; 
+    }
+    else
+    {
+        tcflush(uart->uart_fd, TCOFLUSH);//TCOFLUSH刷新写入的数据但不传送 
+        return -1; 
+    }
 
-	return send_len;
+	return 0;
 }
