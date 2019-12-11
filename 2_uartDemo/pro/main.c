@@ -6,8 +6,8 @@
 int main( int argc, char *argv[] ) 
 {
     struct uart uart;
-    char a = '1';
-    char b = 0;
+    char a[10] = {0};
+    char b[10] = {0};
     if (argc < 3)
     {
         printf("example: uart /dev/ttyUSB0 115200 \n");
@@ -15,18 +15,24 @@ int main( int argc, char *argv[] )
     }
     uart.uart_path = argv[1];
     uart.baud_rate = atoi(argv[2]);
-    uart.blocking_mode = 0;
+    // uart.blocking_mode = 0;
     uart.parity_check = 0;
     uart.two_stop_bit = 0;
 
     uart_open(&uart);
 
-    uart_send(&uart, &a, 1);
-    if(uart_recv(&uart,&b,1))
+    for (int i = 0; i < 10; i++)
     {
-        printf("%c\n", b);
-    }
-        
+        for (int j = 0; j < 10; j++)
+        {
+            a[j] = 0x30 + i;
+        }
+        uart_send(&uart, a, 10);
+        if (uart_recv(&uart, b, 10)>0)
+        {
+            printf("%s\n", b);
+        }
+    }    
 
     uart_close(&uart);
     return 0;
