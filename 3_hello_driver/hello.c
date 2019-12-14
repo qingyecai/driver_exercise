@@ -4,7 +4,7 @@
 
 MODULE_DESCRIPTION("HELLO MODULE");
 
-MODULE_LICENSE("Dual BSD/GLP");  //没有指定license会出现error
+MODULE_LICENSE("Dual BSD/GLP"); //没有指定license会出现error
 
 static int hello_init(void)    //static使得该文件以外无法访问
 {
