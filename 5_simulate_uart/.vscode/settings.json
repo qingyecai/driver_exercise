@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "kernel.h": "c",
+        "module.h": "c",
+        "types.h": "c",
+        "cstdio": "cpp",
+        "type_traits": "cpp",
+        "typeinfo": "cpp",
+        "stddef.h": "c"
+    }
+}
