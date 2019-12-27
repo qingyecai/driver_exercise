@@ -4,6 +4,8 @@
 #include <linux/ide.h>
 #include <linux/init.h>
 #include <linux/module.h>
+#include <asm-generic/ioctls.h>
+#include <linux/termios.h>
 
 #define CHRDEVBASE_MAJOR	200				/* 主设备号 */
 #define CHRDEVBASE_NAME		"chrdevbase" 	/* 设备名     */
@@ -83,17 +85,44 @@ static int chrdevbase_release(struct inode *inode, struct file *filp)
 	printk("chrdevbase release！\n");
 	return 0;
 }
-
+long chrdevbase_unlocked_ioctl(struct file *pfile, unsigned int cmd, unsigned long arg)
+{
+    printk("chrdevbase_unlocked_ioctl！\n");
+    printk("%x,%lx\n", cmd, arg);
+    if(cmd==TCGETS)
+    {
+       
+        
+    }
+    else if (cmd==TCSETS)
+    {
+        struct termios *p=(struct termios*)arg;
+        if (p->c_cflag|B115200)
+        {
+            printk("B115200\n");
+        }
+    }
+    return 0;
+}
+long chrdevbase_compact_ioctl(struct file *pfile, unsigned int cmd, unsigned long arg)
+{
+    printk("chrdevbase_compact_ioctl！\n");
+    printk("%x,%lx\n\n", cmd, arg);
+    return 0;
+}
 /*
  * 设备操作函数结构体
  */
 static struct file_operations chrdevbase_fops = {
-	.owner = THIS_MODULE,	
-	.open = chrdevbase_open,
-	.read = chrdevbase_read,
-	.write = chrdevbase_write,
-	.release = chrdevbase_release,
-};
+    .owner = THIS_MODULE,
+    .open = chrdevbase_open,
+    .read = chrdevbase_read,
+    .write = chrdevbase_write,
+    .release = chrdevbase_release,
+    //.compat_ioctl = chrdevbase_compact_ioctl,
+    .unlocked_ioctl = chrdevbase_unlocked_ioctl,
+}
+;
 
 /*
  * @description	: 驱动入口函数 

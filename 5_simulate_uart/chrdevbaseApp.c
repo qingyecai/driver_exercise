@@ -5,6 +5,7 @@
 #include "fcntl.h"
 #include "stdlib.h"
 #include "string.h"
+#include <termios.h>//终端控制定义 
 
 static char usrdata[] = {"usr data!"};
 
@@ -19,8 +20,10 @@ int main(int argc, char *argv[])
 	int fd, retvalue;
 	char *filename;
 	char readbuf[100], writebuf[100];
+    struct termios  new_tio;
+    tcflag_t cflag;
 
-	if(argc != 3){
+    if(argc != 3){
 		printf("Error Usage!\n ./chrdevbaseApp /dev/chrdevbase 1\n");
 		return -1;
 	}
@@ -52,7 +55,12 @@ int main(int argc, char *argv[])
 			printf("write file %s failed!\n", filename);
 		}
 	}
+//
+    tcgetattr(fd, &new_tio);
+    new_tio.c_cflag = B115200 | CREAD | CS8;
+    tcsetattr(fd, TCSANOW, &new_tio);
 
+    //
 	/* 关闭设备 */
 	retvalue = close(fd);
 	if(retvalue < 0){
