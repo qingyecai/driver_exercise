@@ -6,9 +6,21 @@
 #include <linux/module.h>
 #include <asm-generic/ioctls.h>
 #include <linux/termios.h>
+#include <linux/cdev.h>
+#include <linux/device.h>
 
-#define CHRDEVBASE_MAJOR	200				/* 主设备号 */
-#define CHRDEVBASE_NAME		"chrdevbase" 	/* 设备名     */
+#define NEWCHR_CNT			    1		  	/* 设备号个数 */
+#define CHRDEVBASE_NAME			"chrdevbase"	/* 名字 */
+
+struct chrdevbase_dev{
+	dev_t devid;			/* 设备号 	 */
+	struct cdev cdev;		/* cdev 	*/
+	struct class *class;		/* 类 		*/
+	struct device *device;	/* 设备 	 */
+	int major;				/* 主设备号	  */
+	int minor;				/* 次设备号   */
+};
+struct chrdevbase_dev chrdev;
 
 static char readbuf[100];		/* 读缓冲区 */
 static char writebuf[100];		/* 写缓冲区 */
@@ -131,14 +143,35 @@ static struct file_operations chrdevbase_fops = {
  */
 static int __init chrdevbase_init(void)
 {
-	int retvalue = 0;
-
-	/* 注册字符设备驱动 */
-	retvalue = register_chrdev(CHRDEVBASE_MAJOR, CHRDEVBASE_NAME, &chrdevbase_fops);
-	if(retvalue < 0){
-		printk("chrdevbase driver register failed\n");
+/* 1、创建设备号 */
+	if (chrdev.major) {		/*  定义了设备号 */
+		chrdev.devid = MKDEV(chrdev.major, 0);
+		register_chrdev_region(chrdev.devid, NEWCHR_CNT, CHRDEVBASE_NAME);
+	} else {						/* 没有定义设备号 */
+		alloc_chrdev_region(&chrdev.devid, 0, NEWCHR_CNT, CHRDEVBASE_NAME);	/* 申请设备号 */
+		chrdev.major = MAJOR(chrdev.devid);	/* 获取分配号的主设备号 */
+		chrdev.minor = MINOR(chrdev.devid);	/* 获取分配号的次设备号 */
 	}
-	printk("chrdevbase init!\n");
+	printk("newcheled major=%d,minor=%d\r\n",chrdev.major, chrdev.minor);	
+	
+	/* 2、初始化cdev */
+	chrdev.cdev.owner = THIS_MODULE;
+	cdev_init(&chrdev.cdev, &chrdevbase_fops);
+	
+	/* 3、添加一个cdev */
+	cdev_add(&chrdev.cdev, chrdev.devid, NEWCHR_CNT);
+
+	/* 4、创建类 */
+	chrdev.class = class_create(THIS_MODULE, CHRDEVBASE_NAME);
+	if (IS_ERR(chrdev.class)) {
+		return PTR_ERR(chrdev.class);
+	}
+
+	/* 5、创建设备 */
+	chrdev.device = device_create(chrdev.class, NULL, chrdev.devid, NULL, CHRDEVBASE_NAME);
+	if (IS_ERR(chrdev.device)) {
+		return PTR_ERR(chrdev.device);
+	}
 	return 0;
 }
 
@@ -149,8 +182,11 @@ static int __init chrdevbase_init(void)
  */
 static void __exit chrdevbase_exit(void)
 {
-	/* 注销字符设备驱动 */
-	unregister_chrdev(CHRDEVBASE_MAJOR, CHRDEVBASE_NAME);
+	cdev_del(&chrdev.cdev);/*  删除cdev */
+	unregister_chrdev_region(chrdev.devid, NEWCHR_CNT); /* 注销设备号 */
+
+	device_destroy(chrdev.class, chrdev.devid);
+	class_destroy(chrdev.class);
 	printk("chrdevbase exit!\n");
 }
 
